@@ -1,0 +1,469 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casa Rubio · Maeve's Hours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;--ink:#000000;--muted:#6b6b6b;--hair:#e2e2e2;
+    --blue:#1496d8;--red:#e8400f;--paid:#0f8a3c;--paid-soft:#e9f6ee;--gray:#6a6a6a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font-family:Archivo,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.4;
+    -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;padding:0 0 90px}
+  .wrap{max-width:820px;margin:0 auto;padding:0 22px}
+
+  .topbar{display:flex;align-items:center;gap:24px;padding:20px 22px;border-bottom:2px solid var(--ink);max-width:820px;margin:0 auto}
+  .brand{display:flex;flex-direction:column;line-height:1;margin-right:8px}
+  .brand .name{font-weight:900;font-size:22px;letter-spacing:-.03em}
+  .brand .sub{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-top:4px}
+  .tab{font-weight:800;font-size:16px;letter-spacing:-.01em;cursor:pointer;background:none;border:none;color:#9a9a9a;padding:4px 0;position:relative}
+  .tab.active{color:var(--ink)}
+  .tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:4px;background:var(--blue)}
+
+  .hero{padding:34px 0 22px;border-bottom:1px solid var(--ink);margin-bottom:8px}
+  h1{font-weight:900;font-size:clamp(40px,8vw,64px);line-height:.94;letter-spacing:-.03em;margin:0}
+  .hero p{font-weight:500;font-size:17px;max-width:460px;margin:16px 0 0;color:#222}
+  .eyebrow{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--blue);margin-bottom:8px}
+  .howto{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:13px;max-width:540px}
+  .howto li{display:flex;gap:14px;align-items:flex-start;font-weight:500;font-size:16px}
+  .howto li b{flex:none;width:28px;height:28px;background:var(--ink);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+  .err{display:none;background:#fff3ef;border:2px solid var(--red);color:var(--red);padding:11px 13px;margin:16px 0 0;font-size:14px;font-weight:700}
+
+  .sect{font-weight:900;font-size:24px;letter-spacing:-.02em;margin:30px 0 14px}
+
+  /* calendar */
+  .cal-head{display:flex;align-items:center;gap:14px;margin:10px 0 16px}
+  .cal-title{font-weight:900;font-size:26px;letter-spacing:-.02em}
+  .cal-sp{flex:1}
+  .navbtn{border:2px solid var(--ink);background:#fff;cursor:pointer;font:inherit;font-weight:900;font-size:18px;line-height:1;padding:6px 12px}
+  .navbtn:hover{background:var(--ink);color:#fff}
+  .navbtn:disabled{opacity:.25;cursor:not-allowed;background:#fff;color:var(--ink)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .dow{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding-bottom:2px}
+  .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;border:2px solid transparent;background:none;cursor:pointer;color:var(--ink)}
+  .cell.empty{cursor:default}
+  .cell:not(.empty):not(.future):hover{border-color:var(--ink)}
+  .cell.inweek:not(.sel):not(.paid){background:#e7f4fb}
+  .cell.future{color:#d2d2d2;cursor:not-allowed}
+  .cell.sel{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .cell.has{border-color:var(--ink)}
+  .cell.paid{color:var(--paid)}
+  .cell.paid.has{border-color:var(--paid)}
+  .cell.sel.paid{background:var(--paid);color:#fff;border-color:var(--paid)}
+  .cell.today:not(.sel){outline:2px dashed var(--hair);outline-offset:-2px}
+
+  /* day entry */
+  .entry{border:2px solid var(--ink);padding:18px;margin-top:18px}
+  .entry-week{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+  .entry-day{font-weight:900;font-size:20px;letter-spacing:-.02em;margin-bottom:14px}
+  .times{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fld{display:flex;flex-direction:column;gap:6px}
+  .fld.full{grid-column:1/-1;margin-top:14px}
+  .fld label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  input[type=time],input[type=text],input[type=number]{font:inherit;font-weight:600;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:0;padding:12px 13px;width:100%}
+  input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--blue);border-color:var(--blue)}
+  .entry-actions{display:flex;align-items:center;gap:14px;margin-top:16px}
+  .entry-msg{margin-top:12px;font-weight:700;font-size:14px}
+  .entry-msg.bad{color:var(--red)}
+  .entry-msg.ok{color:var(--paid)}
+  .btn{font:inherit;font-weight:800;cursor:pointer;border:none;border-radius:0;padding:13px 24px;font-size:15px}
+  .btn-black{background:var(--ink);color:#fff}.btn-black:hover{background:#333}
+  .lnk{background:none;border:none;cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:var(--muted);text-decoration:underline;padding:0}
+  .lnk:hover{color:var(--red)}
+
+  /* receipt */
+  .receipt{border:2px solid var(--ink);padding:22px;margin-top:8px}
+  .rc-head{font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:1.05;margin-bottom:18px}
+  .rc-row{display:flex;align-items:baseline;gap:12px;padding:9px 0}
+  .rc-day{font-weight:800;font-size:16px;min-width:120px}
+  .rc-mid{flex:1;font-weight:600;color:var(--muted);font-size:13.5px}
+  .rc-hrs{font-weight:700;white-space:nowrap}
+  .rc-amt{font-weight:800;white-space:nowrap;min-width:78px;text-align:right}
+  .rc-exp{color:var(--red);font-weight:700;font-size:13px;margin:0 0 4px 0}
+  .rc-edit{margin-left:8px}
+  .rc-div{height:2px;background:var(--hair);margin:14px 0}
+  .rc-total{display:flex;align-items:baseline;justify-content:space-between}
+  .rc-total .lbl{font-weight:900;font-size:22px;letter-spacing:-.02em}
+  .rc-total .val{font-weight:900;font-size:24px;letter-spacing:-.02em}
+  .rc-total .sub{font-weight:600;font-size:13px;color:var(--muted)}
+  .rc-warn{color:var(--red);font-weight:700;font-size:14px;margin-top:4px}
+  .submit{display:block;width:100%;text-align:left;padding:20px 24px;margin-top:14px;border:none;cursor:pointer;
+    font-family:inherit;font-weight:900;font-size:22px;letter-spacing:-.02em;color:#fff;background:var(--ink)}
+  .submit:hover{background:#333}
+  .submit:disabled{background:var(--gray);cursor:not-allowed}
+
+  /* history */
+  .pay{border:2px solid var(--paid);padding:20px;margin-bottom:14px}
+  .pay-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .pay-week{font-weight:900;font-size:22px;letter-spacing:-.02em;color:var(--ink)}
+  .pay-amt{font-weight:900;font-size:26px;letter-spacing:-.02em;color:var(--paid)}
+  .pay-meta{font-weight:700;font-size:12.5px;color:var(--paid);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+  .pay-days{margin-top:14px;border-top:2px solid var(--paid-soft);padding-top:10px}
+  .pay-drow{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13.5px;font-weight:600}
+  .pay-drow .pe{color:var(--red);font-weight:700}
+  .pay-foot{margin-top:12px;display:flex;justify-content:flex-end}
+
+  .total-banner{border:2px solid var(--ink);padding:18px 22px;display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+  .total-banner .l{font-weight:900;font-size:18px;letter-spacing:-.02em}
+  .total-banner .r{font-weight:900;font-size:30px;letter-spacing:-.02em;color:var(--paid)}
+  .total-banner .s{font-weight:600;font-size:13px;color:var(--muted)}
+
+  .empty{padding:46px 0;color:var(--muted)}
+  .empty .big{font-weight:900;font-size:22px;color:var(--ink);margin-bottom:6px}
+  .empty p{font-weight:500;margin:0;max-width:460px}
+
+  .set-row{max-width:300px}
+  .set-row label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:8px}
+  .set-rate{display:flex;align-items:center;gap:10px;border:2px solid var(--ink);padding:6px 14px}
+  .set-rate .d{font-weight:900;font-size:24px}
+  .set-rate input{border:none;font-weight:800;font-size:24px;padding:8px 0;width:120px}
+  .set-rate input:focus{box-shadow:none}
+  .set-rate .u{font-weight:700;color:var(--muted)}
+  .set-note{font-weight:500;color:var(--muted);font-size:14px;margin-top:14px;max-width:440px}
+
+  .panel{display:none}.panel.active{display:block}
+
+  @media(max-width:600px){
+    .topbar{flex-wrap:wrap;gap:16px}
+    .cell{font-size:15px}
+    .times{grid-template-columns:1fr 1fr}
+    .rc-day{min-width:90px;font-size:14px}
+    .rc-mid{display:none}
+  }
+</style>
+
+<div class="topbar">
+  <div class="brand"><span class="name">Casa Rubio</span></div>
+  <button class="tab active" data-tab="log">Log</button>
+  <button class="tab" data-tab="history">History</button>
+  <button class="tab" data-tab="settings">Settings</button>
+</div>
+
+<div class="wrap">
+  <div class="err" id="err"></div>
+
+  <!-- LOG -->
+  <div class="panel active" id="panel-log">
+    <div class="hero">
+      <div class="eyebrow">Maeve's Hours</div>
+      <h1>Log a day</h1>
+      <ol class="howto">
+        <li><b>1</b><span>Tap the day you worked on the calendar.</span></li>
+        <li><b>2</b><span>Enter your start and end time, then tap Add day.</span></li>
+        <li><b>3</b><span>At the end of the week, tap Submit week to send it for payout.</span></li>
+      </ol>
+    </div>
+
+    <div class="cal-head">
+      <button class="navbtn" id="prevMo">&#8592;</button>
+      <div class="cal-title" id="calTitle"></div>
+      <div class="cal-sp"></div>
+      <button class="navbtn" id="nextMo">&#8594;</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="entry">
+      <div class="entry-week" id="entryWeek"></div>
+      <div class="entry-day" id="entryDay"></div>
+      <div class="times">
+        <div class="fld"><label for="f-start">Start</label><input id="f-start" type="time"></div>
+        <div class="fld"><label for="f-end">End</label><input id="f-end" type="time"></div>
+        <div class="fld full"><label for="f-exp">Expenses or things needed</label><input id="f-exp" type="text" placeholder="diapers, $14 parking, more wipes"></div>
+      </div>
+      <div class="entry-actions">
+        <button class="btn btn-black" id="addBtn">Add day</button>
+        <button class="lnk" id="removeDay" style="display:none">Remove this day</button>
+      </div>
+      <div class="entry-msg" id="entryMsg"></div>
+    </div>
+
+    <div id="weeks"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="panel-history">
+    <div class="hero"><h1>Payouts</h1><p>Every week you submit is recorded here with its days, hours, and total locked in.</p></div>
+    <div class="total-banner">
+      <div><div class="l">Total paid out</div><div class="s" id="paidMeta">0 payouts</div></div>
+      <div class="r" id="paidTotal">$0</div>
+    </div>
+    <div id="payouts"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="panel-settings">
+    <div class="hero"><h1>Settings</h1><p>Set the pay rate. It applies to weeks you haven't submitted yet and never changes a payout that's already recorded.</p></div>
+    <div class="set-row">
+      <label for="rate">Hourly rate</label>
+      <div class="set-rate"><span class="d">$</span><input id="rate" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00"><span class="u">/hr</span></div>
+    </div>
+    <p class="set-note">Hours are calculated from the start and end time of each day. Overnight shifts that cross midnight are handled automatically.</p>
+
+    <div class="set-row" style="max-width:540px;margin-top:30px">
+      <label for="sheetUrl">Google Sheet sync (web app URL)</label>
+      <input id="sheetUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="border:2px solid var(--ink);border-radius:0;width:100%">
+      <p class="set-note" id="syncState">Paste the URL from your Apps Script deployment. Each submitted week is sent to the sheet.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = "nanny-timesheet";
+let state = { rate:0, shifts:[], payouts:[], sheetUrl:"" };
+let editing = false;
+let selected = todayStr();
+let calView = (()=>{const n=new Date();return {y:n.getFullYear(),m:n.getMonth()};})();
+
+const $ = id => document.getElementById(id);
+const errBox = $("err");
+const showErr = m => { errBox.textContent=m; errBox.style.display="block"; };
+const clearErr = () => { errBox.style.display="none"; };
+
+// date helpers (local, no UTC drift)
+function pad(n){return String(n).padStart(2,"0");}
+function todayStr(){const n=new Date();return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;}
+function parse(d){return new Date(d+"T00:00:00");}
+function sundayOf(d){const x=parse(d);x.setDate(x.getDate()-x.getDay());return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;}
+function addDays(d,n){const x=parse(d);x.setDate(x.getDate()+n);return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;}
+function weekOf(start){return "Week of "+parse(start).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});}
+function longDay(d){return parse(d).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});}
+function shortDay(d){return parse(d).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
+function fmtTime(t){const[h,m]=t.split(":").map(Number);const ap=h>=12?"pm":"am";let hh=h%12;if(hh===0)hh=12;return `${hh}:${pad(m)}${ap}`;}
+
+function shiftHours(s){
+  if(!s.start||!s.end)return 0;
+  const[sh,sm]=s.start.split(":").map(Number);
+  const[eh,em]=s.end.split(":").map(Number);
+  let mins=(eh*60+em)-(sh*60+sm); if(mins<=0)mins+=1440;
+  return Math.max(0,mins)/60;
+}
+const money = n => "$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const hrsFmt = n => n.toFixed(2).replace(/\.00$/,".0")+" hrs";
+const esc = s => s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const expOf = s => s.expenses || s.note || "";
+const coveredByPayout = d => state.payouts.some(p => d>=p.weekStart && d<=p.weekEnd);
+const activeShifts = () => state.shifts.filter(s=>!coveredByPayout(s.date));
+const shiftFor = d => state.shifts.find(s=>s.date===d);
+
+// storage works in the Claude preview (window.storage) and, when you host
+// this file for real use, falls back to the browser's own storage.
+const store = {
+  async get(k){
+    if(window.storage) return await window.storage.get(k);
+    const v=localStorage.getItem(k); return v?{key:k,value:v}:null;
+  },
+  async set(k,v){
+    if(window.storage) return await window.storage.set(k,v);
+    localStorage.setItem(k,v); return {key:k,value:v};
+  }
+};
+
+async function load(){
+  try{
+    const r=await store.get(STORE_KEY);
+    if(r&&r.value){const p=JSON.parse(r.value);
+      state.rate=Number(p.rate)||0;
+      state.shifts=Array.isArray(p.shifts)?p.shifts:[];
+      state.payouts=Array.isArray(p.payouts)?p.payouts:[];
+      state.sheetUrl=p.sheetUrl||"";}
+  }catch(e){}
+}
+let t=null;
+async function save(){try{await store.set(STORE_KEY,JSON.stringify(state));clearErr();}
+  catch(e){showErr("Couldn't save just now. What's on screen is current but may not have persisted. Try again shortly.");}}
+const queueSave=()=>{clearTimeout(t);t=setTimeout(save,300);};
+
+// ---- calendar ----
+function renderCal(){
+  $("calTitle").textContent=new Date(calView.y,calView.m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  const now=new Date();
+  $("nextMo").disabled = (calView.y>now.getFullYear())||(calView.y===now.getFullYear()&&calView.m>=now.getMonth());
+  const today=todayStr();
+  const selWeek=sundayOf(selected);
+  const grid=$("calGrid");grid.innerHTML="";
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{const e=document.createElement("div");e.className="dow";e.textContent=d;grid.appendChild(e);});
+  const first=new Date(calView.y,calView.m,1).getDay();
+  const days=new Date(calView.y,calView.m+1,0).getDate();
+  for(let i=0;i<first;i++){const e=document.createElement("div");e.className="cell empty";grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const ds=`${calView.y}-${pad(calView.m+1)}-${pad(d)}`;
+    const e=document.createElement("button");e.className="cell";e.textContent=d;e.dataset.date=ds;
+    if(sundayOf(ds)===selWeek)e.classList.add("inweek");
+    if(ds===selected)e.classList.add("sel");
+    if(shiftFor(ds))e.classList.add("has");
+    if(coveredByPayout(ds))e.classList.add("paid");
+    if(ds===today)e.classList.add("today");
+    if(ds>today){e.classList.add("future");e.disabled=true;}
+    grid.appendChild(e);
+  }
+}
+function loadEntry(){
+  $("entryWeek").textContent=weekOf(sundayOf(selected));
+  $("entryDay").textContent=longDay(selected);
+  const em=$("entryMsg");if(em){em.textContent="";em.className="entry-msg";}
+  const ex=shiftFor(selected);
+  if(ex && !coveredByPayout(selected)){
+    $("f-start").value=ex.start;$("f-end").value=ex.end;$("f-exp").value=expOf(ex);
+    $("addBtn").textContent="Update day";editing=true;$("removeDay").style.display="inline";
+  }else{
+    $("f-start").value="09:00";$("f-end").value="14:00";$("f-exp").value="";
+    $("addBtn").textContent="Add day";editing=false;$("removeDay").style.display="none";
+  }
+}
+
+// ---- receipt(s) for active weeks ----
+function renderWeeks(){
+  const box=$("weeks");box.innerHTML="";
+  const act=activeShifts();
+  if(act.length===0){
+    box.innerHTML=`<div class="empty"><div class="big">Nothing added yet</div><p>Pick a day above, add the times, and the week's receipt shows up here ready to submit.</p></div>`;
+    return;
+  }
+  const groups={};act.forEach(s=>{const k=sundayOf(s.date);(groups[k]=groups[k]||[]).push(s);});
+  Object.keys(groups).sort().reverse().forEach(k=>{
+    const rows=groups[k].sort((a,b)=>a.date.localeCompare(b.date));
+    let H=0;rows.forEach(s=>H+=shiftHours(s));
+    const amt=H*state.rate;
+    const card=document.createElement("div");card.className="receipt";
+    card.innerHTML=`
+      <div class="rc-head">${weekOf(k)}</div>
+      ${rows.map(s=>{const h=shiftHours(s);const e=expOf(s);
+        return `<div>${e?`<div class="rc-exp">Needs: ${esc(e)}</div>`:""}
+          <div class="rc-row">
+            <span class="rc-day">${shortDay(s.date)}</span>
+            <span class="rc-mid">${fmtTime(s.start)}–${fmtTime(s.end)}</span>
+            <span class="rc-hrs">${hrsFmt(h)}</span>
+            <span class="rc-amt">${money(h*state.rate)}</span>
+            <button class="lnk rc-edit" data-edit="${s.date}">Edit</button>
+          </div></div>`;}).join("")}
+      <div class="rc-div"></div>
+      <div class="rc-total">
+        <div><div class="lbl">Total</div>${state.rate?`<div class="sub">${hrsFmt(H)} @ ${money(state.rate)}/hr</div>`:`<div class="rc-warn">Set your hourly rate in Settings</div>`}</div>
+        <div class="val">${money(amt)}</div>
+      </div>
+      <button class="submit" data-submit="${k}" ${(!state.rate||rows.length===0)?"disabled":""}>Submit week &#8594;</button>`;
+    box.appendChild(card);
+  });
+}
+
+// ---- history ----
+function renderHistory(){
+  const sorted=[...state.payouts].sort((a,b)=>b.weekStart.localeCompare(a.weekStart));
+  let H=0,A=0;sorted.forEach(p=>{H+=p.hours;A+=p.amount;});
+  $("paidTotal").textContent=money(A);
+  $("paidMeta").textContent=`${hrsFmt(H)} · ${sorted.length} payout${sorted.length!==1?"s":""}`;
+  const box=$("payouts");box.innerHTML="";
+  if(sorted.length===0){box.innerHTML=`<div class="empty"><div class="big">No payouts yet</div><p>When you submit a week on the Log tab, it lands here in green with the full breakdown.</p></div>`;return;}
+  sorted.forEach(p=>{
+    const el=document.createElement("div");el.className="pay";
+    el.innerHTML=`
+      <div class="pay-head">
+        <div><div class="pay-week">${weekOf(p.weekStart)}</div><div class="pay-meta">Paid ${parse(p.datePaid).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})} · ${hrsFmt(p.hours)} @ ${money(p.rate)}/hr${p.synced?" · ✓ in Sheet":""}</div></div>
+        <div class="pay-amt">${money(p.amount)}</div>
+      </div>
+      <div class="pay-days">
+        ${p.days.map(d=>`<div class="pay-drow"><span>${shortDay(d.date)} · ${fmtTime(d.start)}–${fmtTime(d.end)}${d.expenses?` <span class="pe">· ${esc(d.expenses)}</span>`:""}</span><span>${hrsFmt(d.hours)}</span></div>`).join("")}
+      </div>
+      <div class="pay-foot">
+        ${state.sheetUrl?`<button class="lnk" data-resend="${p.id}" style="margin-right:16px">${p.synced?"Resend to Sheet":"Send to Sheet"}</button>`:""}
+        <button class="lnk" data-undo="${p.id}">Undo / reopen this week</button>
+      </div>`;
+    box.appendChild(el);
+  });
+}
+
+// ---- google sheet sync ----
+function buildPayload(p){
+  return {
+    type:"week_submission", nanny:"Maeve",
+    weekOf:weekOf(p.weekStart), weekStart:p.weekStart, weekEnd:p.weekEnd,
+    rate:p.rate, totalHours:Number(p.hours.toFixed(2)), totalPay:Number(p.amount.toFixed(2)),
+    submittedAt:new Date().toISOString(),
+    days:p.days.map(d=>({date:d.date,day:shortDay(d.date),start:fmtTime(d.start),end:fmtTime(d.end),hours:Number(d.hours.toFixed(2)),dayPay:Number((d.hours*p.rate).toFixed(2)),expenses:d.expenses||""}))
+  };
+}
+async function syncPayout(p){
+  if(!state.sheetUrl){ p.synced=false; renderHistory(); return; }
+  try{
+    await fetch(state.sheetUrl,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(buildPayload(p))});
+    p.synced=true;
+  }catch(e){ p.synced=false; }
+  queueSave(); renderHistory();
+}
+
+function render(){
+  $("rate").value=state.rate?state.rate:"";
+  $("sheetUrl").value=state.sheetUrl||"";
+  renderCal();loadEntry();renderWeeks();renderHistory();
+}
+
+// ---- actions ----
+function entryMsg(msg,kind){const e=$("entryMsg");e.textContent=msg||"";e.className="entry-msg"+(kind?" "+kind:"");}
+$("addBtn").addEventListener("click",()=>{
+  const start=$("f-start").value,end=$("f-end").value;
+  if(selected>todayStr()){entryMsg("You can't log a day that hasn't happened yet.","bad");return;}
+  if(coveredByPayout(selected)){entryMsg("That week was already submitted. Reopen it from History to change it.","bad");return;}
+  if(!start||!end){entryMsg("Enter both a start and end time, then tap Add day.","bad");return;}
+  clearErr();
+  const ex=shiftFor(selected);
+  const exp=$("f-exp").value.trim();
+  if(ex){ex.start=start;ex.end=end;ex.expenses=exp;}
+  else{state.shifts.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,6),date:selected,start,end,expenses:exp});}
+  queueSave();render();
+  const h=shiftHours({start,end});
+  entryMsg("Added "+shortDay(selected)+" · "+hrsFmt(h)+". It's in the week below.","ok");
+  setTimeout(()=>{const w=$("weeks");if(w&&w.scrollIntoView)w.scrollIntoView({behavior:"smooth",block:"start"});},60);
+});
+$("removeDay").addEventListener("click",()=>{
+  state.shifts=state.shifts.filter(s=>s.date!==selected);queueSave();render();
+});
+$("rate").addEventListener("input",e=>{state.rate=Number(e.target.value)||0;queueSave();render();});
+$("sheetUrl").addEventListener("input",e=>{state.sheetUrl=e.target.value.trim();queueSave();});
+$("prevMo").addEventListener("click",()=>{calView.m--;if(calView.m<0){calView.m=11;calView.y--;}renderCal();});
+$("nextMo").addEventListener("click",()=>{const now=new Date();if((calView.y>now.getFullYear())||(calView.y===now.getFullYear()&&calView.m>=now.getMonth()))return;calView.m++;if(calView.m>11){calView.m=0;calView.y++;}renderCal();});
+
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
+  ["log","history","settings"].forEach(p=>$("panel-"+p).classList.toggle("active",p===b.dataset.tab));
+  window.scrollTo({top:0});
+}));
+
+document.body.addEventListener("click",async e=>{
+  const cell=e.target.closest(".cell:not(.empty)");
+  const edit=e.target.closest("[data-edit]");
+  const sub=e.target.closest("[data-submit]");
+  const undo=e.target.closest("[data-undo]");
+  const resend=e.target.closest("[data-resend]");
+  if(cell){selected=cell.dataset.date;clearErr();renderCal();loadEntry();}
+  else if(edit){selected=edit.dataset.edit;calView={y:Number(selected.slice(0,4)),m:Number(selected.slice(5,7))-1};render();window.scrollTo({top:0,behavior:"smooth"});}
+  else if(sub){
+    const k=sub.dataset.submit;
+    if(!state.rate){showErr("Set the hourly rate in Settings before submitting.");return;}
+    const rows=activeShifts().filter(s=>sundayOf(s.date)===k).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!rows.length)return;
+    let H=0;const days=rows.map(s=>{const h=shiftHours(s);H+=h;return {date:s.date,start:s.start,end:s.end,hours:h,expenses:expOf(s)};});
+    const payout={id:k+"-"+Date.now(),weekStart:k,weekEnd:addDays(k,6),days,hours:H,rate:state.rate,amount:H*state.rate,datePaid:todayStr(),synced:false};
+    state.payouts.push(payout);
+    state.shifts=state.shifts.filter(s=>!rows.some(r=>r.id===s.id));
+    queueSave();render();
+    syncPayout(payout);
+    document.querySelector('.tab[data-tab="history"]').click();
+  }
+  else if(resend){
+    const p=state.payouts.find(x=>x.id===resend.dataset.resend);if(p)syncPayout(p);
+  }
+  else if(undo){
+    const p=state.payouts.find(x=>x.id===undo.dataset.undo);if(!p)return;
+    p.days.forEach(d=>state.shifts.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,6),date:d.date,start:d.start,end:d.end,expenses:d.expenses||""}));
+    state.payouts=state.payouts.filter(x=>x.id!==p.id);
+    document.querySelector('.tab[data-tab="log"]').click();
+    queueSave();render();
+  }
+});
+
+(async()=>{await load();render();})();
+</script>
