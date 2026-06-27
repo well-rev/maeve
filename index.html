@@ -1,5 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Casa Rubio · Maeve's Hours</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,13 +131,32 @@
   .panel{display:none}.panel.active{display:block}
 
   @media(max-width:600px){
-    .topbar{flex-wrap:wrap;gap:16px}
+    body{padding:0 0 70px}
+    .wrap{padding:0 16px}
+    .topbar{flex-wrap:wrap;gap:14px;padding:16px}
+    .hero{padding:26px 0 18px}
+    .howto li{font-size:15px}
     .cell{font-size:15px}
+    .cal-grid{gap:6px}
+    .entry,.receipt{padding:16px}
     .times{grid-template-columns:1fr 1fr}
-    .rc-day{min-width:90px;font-size:14px}
+    .rc-head{font-size:21px}
+    .rc-day{min-width:0;font-size:14px}
     .rc-mid{display:none}
+    .rc-row{flex-wrap:wrap;gap:6px 10px}
+    .rc-amt{min-width:0}
+    .pay{padding:16px}
+    .pay-week{font-size:19px}
+    .pay-amt{font-size:23px}
+  }
+  @media(max-width:380px){
+    .topbar{gap:10px}
+    .tab{font-size:15px}
+    .cell{font-size:13px}
   }
 </style>
+</head>
+<body>
 
 <div class="topbar">
   <div class="brand"><span class="name">Casa Rubio</span></div>
@@ -467,3 +489,5 @@ document.body.addEventListener("click",async e=>{
 
 (async()=>{await load();render();})();
 </script>
+</body>
+</html>
