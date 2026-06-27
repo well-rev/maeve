@@ -444,9 +444,13 @@ $("addBtn").addEventListener("click",()=>{
   const exp=$("f-exp").value.trim();
   if(ex){ex.start=start;ex.end=end;ex.expenses=exp;}
   else{state.shifts.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,6),date:selected,start,end,expenses:exp});}
-  queueSave();render();
+  const addedDay=selected;
   const h=shiftHours({start,end});
-  entryMsg("Added "+shortDay(selected)+" · "+hrsFmt(h)+". It's in the week below.","ok");
+  // advance to next day if it's not in the future
+  const next=addDays(selected,1);
+  if(next<=todayStr())selected=next;
+  queueSave();render();
+  entryMsg("Added "+shortDay(addedDay)+" · "+hrsFmt(h)+". It's in the week below.","ok");
   setTimeout(()=>{const w=$("weeks");if(w&&w.scrollIntoView)w.scrollIntoView({behavior:"smooth",block:"start"});},60);
 });
 $("removeDay").addEventListener("click",()=>{
